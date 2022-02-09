@@ -12,15 +12,15 @@ if TYPE_CHECKING:
     from oteapi.models.filterconfig import FilterConfig
 
 
-class DemoDataModel(BaseModel):
+class AtomsDliteModel(BaseModel):
     """Demo filter data model."""
 
-    demo_data: List[int] = Field([], description="List of demo data.")
+    molecule_model: Optional[str] = Field(None, description="DLite data model.")
 
 
 @dataclass
-@StrategyFactory.register(("filterType", "filter/DEMO"))
-class DemoFilter:
+@StrategyFactory.register(("filterType", "filter/ASEAtomsToDLite"))
+class ASEAtomsDliteFilter:
     """Filter Strategy."""
 
     filter_config: "FilterConfig"
@@ -57,5 +57,26 @@ class DemoFilter:
             dictionary context.
 
         """
-        model = DemoDataModel(**self.filter_config.configuration)
+        model = AtomsDliteDataModel(**self.filter_config.configuration)
+
+        if model.molecule_model == None:
+            model.molecule_model = dlite.Instance(  # Need to fix storagepath
+                "json:///app/entities/Molecule.json"
+            )  # DLite Metadata
+
+        basename = os.path.splitext(f"{self.filename}")[0]
+
+        inst = MoleculeModel(dims=[len(atoms), 3], id=basename)  # DLite instance
+        inst.symbols = atoms.get_chemical_symbols()
+        inst.masses = atoms.get_masses()
+        inst.positions = atoms.positions
+
+        inst.groundstate_energy = 0.0
+
+        coll.add(label=basename, inst=inst)
+        # Return uuid of the collection that now includes the new parsed
+        # molecule.
+
+        return dict(collection_id=coll.uuid, molecule_name=basename)
+
         return {"key": model.demo_data}
