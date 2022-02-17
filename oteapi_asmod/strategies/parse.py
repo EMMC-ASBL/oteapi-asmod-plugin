@@ -7,7 +7,7 @@ from ase import Atoms
 from ase.io import read
 from dlite import Collection, Instance, get_collection, storage_path
 from oteapi.datacache import DataCache
-from oteapi.models import SessionUpdate
+from oteapi.models import AttrDict, SessionUpdate
 from oteapi.plugins import create_strategy
 from pydantic import BaseModel, Extra, Field, HttpUrl
 
@@ -79,13 +79,13 @@ class AtomisticStructureParseStrategy:
             **self.parse_config.configuration, extra=Extra.ignore
         )
         if model.returntype == "dlitedatamodel" and model.returnformat == "datamodel":
-            if "collection_id" in session:
+            if isinstance(session, AttrDict) and "collection_id" in session:
                 coll = get_collection(session["collection_id"])
             else:
                 coll = Collection()
                 get_collection(coll.uuid)
             return dict(collection_id=coll.uuid)
-        return {}
+        return SessionUpdate
 
     def get(
         self, session: "Optional[Dict[str, Any]]" = None
@@ -129,8 +129,8 @@ class AtomisticStructureParseStrategy:
                 moleculemodel = Instance(  # Need to fix storagepath
                     "json:///app/entities/Molecule.json"
                 )  # DLite Metadata
-                if "collection_id" in session:  # don't do this twice
 
+                if isinstance(session, AttrDict) and "collection_id" in session:
                     coll = get_collection(session["collection_id"])
 
                 else:
@@ -152,10 +152,9 @@ class AtomisticStructureParseStrategy:
                 # Return uuid of the collection that now includes the new parsed
                 # molecule.
 
-                return SessionUpdateAtomisticParse(
-                    data={"collection_id": coll.uuid, "molecule_name": basename}
-                )
-        # return atoms
+                #  return SessionUpdateAtomisticParse(
+                #    data={"collection_id": coll.uuid, "molecule_name": basename}
+                # )
         return SessionUpdateAtomisticParse(
             symbols=atoms.get_chemical_symbols(), positions=atoms.positions.tolist()
         )
