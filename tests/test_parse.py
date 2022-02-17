@@ -1,26 +1,25 @@
 """Test parse strategies."""
 
 
-def test_json():
-    """Test `text/json` parse strategy."""
+def test_xyz_read(repo_dir: "Path") -> None:
+    """Test `chemical/x-xyz` parse strategy."""
+    from ase.io import read
     from oteapi.models.resourceconfig import ResourceConfig
 
-    from oteapi_asmod.strategies.parse import DemoJSONDataParseStrategy
+    from oteapi_asmod.strategies.parse import AtomisticStructureParseStrategy
 
-    data = {
-        "firstName": "Joe",
-        "lastName": "Jackson",
-        "gender": "male",
-        "age": 28,
-        "address": {"streetAddress": "101", "city": "San Diego", "state": "CA"},
-        "phoneNumbers": [{"type": "home", "number": "7349282382"}],
-    }
+    filepath = repo_dir / "tests" / "testfiles" / "Ethane.xyz"
 
     config = ResourceConfig(
-        downloadUrl="https://filesamples.com/samples/code/json/sample2.json",
-        mediaType="text/jsonDEMO",
+        downloadUrl=(
+            "https://raw.githubusercontent.com/nutjunkie/IQmol/"
+            "master/share/fragments/Molecules/Alkanes/Ethane.xyz"
+        ),
+        mediaType="chemical/x-xyz",
     )
-    parser = DemoJSONDataParseStrategy(config)
-    json = parser.get()
+    parser = AtomisticStructureParseStrategy(config)
+    parsedatoms = parser.get()
 
-    assert json == data
+    atoms = read(filepath)
+    assert parsedatoms.symbols == atoms.get_chemical_symbols()
+    assert parsedatoms.positions == atoms.positions.tolist()
