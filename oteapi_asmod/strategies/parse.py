@@ -71,7 +71,7 @@ class AtomisticStructureParseStrategy:
             ase.Atoms object in cache.
 
         """
-        model = AtomisticParseDataModel(  # Checkout how to do this only once
+        model = AtomisticParseDataModel(
             **self.parse_config.configuration, extra=Extra.ignore
         )
 
