@@ -7,6 +7,7 @@ def test_ASEDlite(  # pylint: disable=invalid-name, too-many-locals
     """Test converting ase.Atoms, placed in datacache by AtomisticStructureParseStrategy,
     to dlite metadata strategy."""
     import numpy as np
+    import pytest
     from dlite import Collection
     from oteapi.models import SessionUpdate
     from oteapi.models.resourceconfig import ResourceConfig
@@ -16,6 +17,7 @@ def test_ASEDlite(  # pylint: disable=invalid-name, too-many-locals
         ASEDliteFunctionStrategy,
     )
     from oteapi_asmod.strategies.parse import AtomisticStructureParseStrategy
+    from oteapi_asmod.utils import OteapiAsmodError
 
     # Use parsestrategy to place molecule in datacache
     config = ResourceConfig(
@@ -34,8 +36,6 @@ def test_ASEDlite(  # pylint: disable=invalid-name, too-many-locals
     # Create session an place collection in it
     session = {}
     session.update(SessionUpdate(collection_id=coll.uuid))
-    print("*" * 60)
-    print(type(session))
     # Define configuration for the function
     modelpath = repo_dir / "tests" / "testfiles" / "Molecule.json"
     config2 = ASEDliteConfig(
@@ -45,6 +45,10 @@ def test_ASEDlite(  # pylint: disable=invalid-name, too-many-locals
     # Instantiate function
     dlitefyer = ASEDliteFunctionStrategy(config2)
     session.update(dlitefyer.initialize())  # just in case initialize does something
+    # Test running function without giving session
+    with pytest.raises(OteapiAsmodError):
+        dlitefyer.get()
+
     # Run function
     dlitefyer.get(session)
 
