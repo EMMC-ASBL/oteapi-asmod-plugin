@@ -9,7 +9,7 @@ Further reading:
 
 ## License and copyright
 
-OTE-API AtomScale MODels is released under the [MIT license](LICENSE) with copyright &copy; SINTEF.
+OTE-API AtomScale MODels is released under the [MIT license](LICENSE.md) with copyright &copy; SINTEF.
 
 ## Acknowledgment
 
