@@ -7,31 +7,43 @@ from ase import Atoms
 from ase.io import read
 from ase.io.jsonio import MyEncoder
 from oteapi.datacache import DataCache
-from oteapi.models import SessionUpdate
+from oteapi.models import AttrDict, DataCacheConfig, ResourceConfig, SessionUpdate
 from oteapi.plugins import create_strategy
-from pydantic import BaseModel, Extra, Field
+from pydantic import Field
 
 if TYPE_CHECKING:
     from typing import Any, Dict
-
-    from oteapi.models import ResourceConfig
 
 
 class SessionUpdateAtomisticParse(SessionUpdate):
     """Class for returning values from oteapi-asmod Parse using ASE."""
 
-    cached_atoms: str = Field(
+    cached_atoms_key: str = Field(
         ...,
         description="The key to the ase.Atoms object in the data cache.",
     )
 
 
-class AtomisticParseDataModel(BaseModel):
-    """Pydantic model for the Atomistic parse strategy"""
+class AtomisticParseConfig(AttrDict):
+    """Pydantic model for the Atomistic parse strategy."""
 
     fileformat: Optional[str] = Field(
         None,
         description=("Optional, to specify format as input to the ase reader."),
+    )
+
+    datacache_config: Optional[DataCacheConfig] = Field(
+        None,
+        description="Configuration options for the local data cache.",
+    )
+
+
+class AtomisticParseResourceConfig(ResourceConfig):
+    """Atomistic parse strategy resource config."""
+
+    configuration: AtomisticParseConfig = Field(
+        AtomisticParseConfig(),
+        description="Atomstic parse strategy specific configuration.",
     )
 
 
@@ -39,7 +51,7 @@ class AtomisticParseDataModel(BaseModel):
 class AtomisticStructureParseStrategy:
     """Parse Strategyi for files describing atomstic models/structures."""
 
-    parse_config: "ResourceConfig"
+    parse_config: AtomisticParseResourceConfig
 
     def initialize(self, session: "Optional[Dict[str, Any]]" = None) -> SessionUpdate:
         """Initialize strategy.
@@ -54,7 +66,7 @@ class AtomisticStructureParseStrategy:
             The session.
 
         """
-        return SessionUpdate
+        return SessionUpdate()
 
     def get(
         self, session: "Optional[Dict[str, Any]]" = None
@@ -68,26 +80,26 @@ class AtomisticStructureParseStrategy:
             session: A session-specific dictionary context.
 
         Returns:
-            ase.Atoms object in cache.
+            key to ase.Atoms object in cache.
 
         """
-        model = AtomisticParseDataModel(
-            **self.parse_config.configuration, extra=Extra.ignore
+        atomistic_config = AtomisticParseConfig(
+            **self.parse_config.configuration,
         )
 
         downloader = create_strategy("download", self.parse_config)
         output = downloader.get()
-        cache = DataCache(self.parse_config.configuration)
+        cache = DataCache(atomistic_config.datacache_config)
         content = cache.get(output["key"])
 
         if isinstance(content, Atoms):
-            return SessionUpdateAtomisticParse(cached_atoms=output["key"])
+            return SessionUpdateAtomisticParse(cached_atoms_key=output["key"])
 
         name = self.parse_config.downloadUrl.path.rsplit("/")[-1].split(".")
         with cache.getfile(
             key=output["key"], suffix=name[-1], prefix=name[0]
         ) as filename:
-            atoms = read(filename, format=model.fileformat)
+            atoms = read(filename, format=atomistic_config.fileformat)
         key = cache.add(atoms, json_encoder=MyEncoder)
 
-        return SessionUpdateAtomisticParse(cached_atoms=key)
+        return SessionUpdateAtomisticParse(cached_atoms_key=key)

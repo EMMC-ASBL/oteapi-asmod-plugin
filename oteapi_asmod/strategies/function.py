@@ -6,18 +6,16 @@ from typing import TYPE_CHECKING, Optional, Union
 
 from dlite import Instance, get_collection
 from oteapi.datacache import DataCache
-from oteapi.models import SessionUpdate
-from pydantic import BaseModel, Field, HttpUrl
+from oteapi.models import AttrDict, DataCacheConfig, FunctionConfig, SessionUpdate
+from pydantic import Field, HttpUrl
 
 from oteapi_asmod.utils import OteapiAsmodError
 
 if TYPE_CHECKING:
     from typing import Any, Dict
 
-    from oteapi.models import FunctionConfig
 
-
-class ASEDliteConfig(BaseModel):  # why is this not a FunctionConfig?
+class ASEDliteConfig(AttrDict):
     """ASE to Dlite entity configuration"""
 
     # The datamodel should ideally be an HttpUrl
@@ -37,21 +35,33 @@ class ASEDliteConfig(BaseModel):  # why is this not a FunctionConfig?
         ...,
         description=("Key to ase.Atoms obejct in datacache"),
     )
-    # functionType: str = Field(
-    #        "asedlite/atoms", # shouldn't this be recognized automatically?
-    #        description=("Type of function"),
-    #        )
+    datacache_config: Optional[DataCacheConfig] = Field(
+        None,
+        description="Configuration options for the local data cache.",
+    )
+
+
+class ASEDliteFunctionConfig(FunctionConfig):
+    """ASEDlite function specific configuration."""
+
+    configuration: ASEDliteConfig = Field(
+        ..., description="ASE-Dlite converter function specific configuration."
+    )
+
+
+class SessionUpdateASEDliteFunction(SessionUpdate):
+    """Class for returning value from ASEDlite function."""
+
+    collection_id: str = Field(..., description="Dlite collection id.")
 
 
 @dataclass
 class ASEDliteFunctionStrategy:
     """Mapping Strategy."""
 
-    function_config: "FunctionConfig"
+    function_config: ASEDliteFunctionConfig
 
-    def initialize(
-        self, session: "Optional[Dict[str, Any]]" = None
-    ) -> "Dict[str, Any]":
+    def initialize(self, session: "Optional[Dict[str, Any]]" = None) -> SessionUpdate:
         """Initialize strategy.
 
         This method will be called through the `/initialize` endpoint of the OTE-API
@@ -65,9 +75,9 @@ class ASEDliteFunctionStrategy:
             dictionary context.
 
         """
-        return {}
+        return SessionUpdate()
 
-    def get(self, session: "Dict" = None) -> SessionUpdate:
+    def get(self, session: "Dict" = None) -> SessionUpdateASEDliteFunction:
         """Execute the strategy.
 
         This method will be called through the strategy-specific endpoint of the
@@ -84,13 +94,6 @@ class ASEDliteFunctionStrategy:
         """
         model = self.function_config
 
-        # In ResourceConfig there is a DataCache called configuration
-        # that is used to get out key/value pairs. Is this something that
-        # should be in all Configs?
-        # model = ASEDliteConfig(
-        #    **self.function_config.configuration, extra=Extra.ignore,
-        # )
-
         # There should be a local folder with entitites at least until onto-ns is up
         # dlite.storage_path.append(str(pathlib.Path(__file__).parent.resolve()))
 
@@ -100,7 +103,7 @@ class ASEDliteFunctionStrategy:
         )  # DLite Metadata
 
         # Get ase.Atoms obejct from cache
-        cache = DataCache()
+        cache = DataCache(model.datacache_config)
         atoms = cache.get(model.datacacheKey)
 
         # Creat dlite instance from metadata and populate
@@ -111,11 +114,11 @@ class ASEDliteFunctionStrategy:
         inst.groundstate_energy = 0.0
 
         # Get collection from session and place  molecule in it
-        if isinstance(session, dict):
+        if session is not None:
             coll = get_collection(session["collection_id"])
         else:
             raise OteapiAsmodError("Missing session")
 
         coll.add(label=model.label, inst=inst)
 
-        return SessionUpdate()
+        return SessionUpdateASEDliteFunction(collection_id=session["collection_id"])

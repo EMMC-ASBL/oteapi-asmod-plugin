@@ -28,7 +28,7 @@ def test_ASEDlite(  # pylint: disable=invalid-name, too-many-locals
         mediaType="chemical/x-xyz",
     )
     parser = AtomisticStructureParseStrategy(config)
-    parsed_atoms_key = parser.get().cached_atoms
+    parsed_atoms_key = parser.get().cached_atoms_key
 
     # Create dlite collection
     coll = Collection()

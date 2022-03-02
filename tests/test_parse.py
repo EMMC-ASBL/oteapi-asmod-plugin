@@ -20,7 +20,7 @@ def test_xyz_read(repo_dir: "Path") -> None:
     )
     cache = DataCache()
     parser = AtomisticStructureParseStrategy(config)
-    parsed_atoms_key = parser.get().cached_atoms
+    parsed_atoms_key = parser.get().cached_atoms_key
     parsed_atoms = cache.get(parsed_atoms_key)
 
     # Note that this Ethane.xyz file was downlaoded from the downloadUrl
