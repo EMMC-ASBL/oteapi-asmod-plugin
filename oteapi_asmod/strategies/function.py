@@ -71,8 +71,7 @@ class ASEDliteFunctionStrategy:
             session: A session-specific dictionary context.
 
         Returns:
-            Dictionary of key/value-pairs to be stored in the sessions-specific
-            dictionary context.
+            SessionUpdate()
 
         """
         return SessionUpdate()
