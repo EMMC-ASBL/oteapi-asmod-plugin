@@ -63,7 +63,7 @@ class AtomisticStructureParseStrategy:
             session: A session-specific dictionary context.
 
         Returns:
-            The session.
+            SessionUpdate()
 
         """
         return SessionUpdate()
