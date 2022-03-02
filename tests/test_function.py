@@ -45,6 +45,7 @@ def test_ASEDlite(  # pylint: disable=invalid-name, too-many-locals
     # Instantiate function
     dlitefyer = ASEDliteFunctionStrategy(config2)
     session.update(dlitefyer.initialize())  # just in case initialize does something
+
     # Test running function without giving session
     with pytest.raises(OteapiAsmodError):
         dlitefyer.get()
