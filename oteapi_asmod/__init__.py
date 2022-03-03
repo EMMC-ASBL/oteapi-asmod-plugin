@@ -1,4 +1,4 @@
-"""OTE-API plugin for atomistic structures
+"""OTE-API AtomScale MODels
 
 A plugin for OTE-API.
 
@@ -8,4 +8,4 @@ Created from cookiecutter-oteapi-plugin, SINTEF, 2022
 
 __version__ = "0.0.1"
 __author__ = "Francesca L. Bleken"
-__author_email__ = "team4.0@sintef.no"
+__author_email__ = "francesca.l.bleken@sintef.no"

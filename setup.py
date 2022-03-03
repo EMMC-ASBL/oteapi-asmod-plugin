@@ -1,4 +1,4 @@
-"""Setup for OTE-API plugin for atomistic structures."""
+"""Setup for OTE-API AtomScale MODels."""
 import re
 from pathlib import Path
 
@@ -38,28 +38,34 @@ with open(TOP_DIR / PACKAGE_NAME / "__init__.py", "r", encoding="utf8") as handl
     AUTHOR_EMAIL = AUTHOR_EMAIL.group("email")  # type: ignore[union-attr]
 
 BASE = [
-    f"{_.strip()}"
+    _.strip()
     for _ in (TOP_DIR / "requirements.txt").read_text(encoding="utf8").splitlines()
     if not _.startswith("#") and "git+" not in _
 ]
 
-DEV = [
-    f"{_.strip()}"
-    for _ in (TOP_DIR / "requirements_dev.txt").read_text(encoding="utf8").splitlines()
+DOCS = [
+    _.strip()
+    for _ in (TOP_DIR / "requirements_docs.txt").read_text(encoding="utf8").splitlines()
     if not _.startswith("#") and "git+" not in _
 ]
 
+DEV = [
+    _.strip()
+    for _ in (TOP_DIR / "requirements_dev.txt").read_text(encoding="utf8").splitlines()
+    if not _.startswith("#") and "git+" not in _
+] + DOCS
+
 setup(
-    name="oteapi-asmod-plugin",
+    name="oteapi-asmod",
     version=VERSION,
     author=AUTHOR,
     author_email=AUTHOR_EMAIL,
-    url="https://github.com/EMMC-ASBL/oteapi-asmod-plugin",
+    url="https://github.com/EMMC-ASBL/oteapi-asmod",
     description="OTE-API Plugin.",
     long_description=(TOP_DIR / "README.md").read_text(encoding="utf8"),
     long_description_content_type="text/markdown",
     packages=find_packages(),
     python_requires=">=3.9",
     install_requires=BASE,
-    extras_require={"dev": DEV},
+    extras_require={"dev": DEV, "docs": DOCS},
 )
