@@ -1,5 +1,5 @@
 # Description:
-<!-- Summary of change, including the issue(s) to be addressed. -->
+<!-- Summary of change, including the issue to be addressed. -->
 
 ## Type of change:
 <!-- Put an `x` in the box that applies. -->
@@ -10,7 +10,7 @@
 ## Checklist for the reviewer:
 <!-- Put an `x` in the boxes that apply. These can be filled by reviewer after the PR is created. -->
 
-This checklist can be used as a help for the reviewer.
+This checklist should be used as a help for the reviewer.
 
 - [ ] Is the change limited to one issue?
 - [ ] Does this PR close the issue?
