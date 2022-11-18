@@ -1,10 +1,10 @@
 """Function strategy class for mapping ase.Atoms to dlite metadata."""
-# pylint: disable=no-self-use,unused-argument
+# pylint: disable=unused-argument
 import pathlib
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Optional, Union
 
-from dlite import Instance, get_collection
+from dlite import Instance, get_instance
 from oteapi.datacache import DataCache
 from oteapi.models import AttrDict, DataCacheConfig, FunctionConfig, SessionUpdate
 from pydantic import Field, HttpUrl
@@ -91,22 +91,22 @@ class ASEDliteFunctionStrategy:
             Returns SessionUpdate()
 
         """
-        model = self.function_config
+        config = ASEDliteConfig(**self.function_config.configuration)
 
         # There should be a local folder with entitites at least until onto-ns is up
         # dlite.storage_path.append(str(pathlib.Path(__file__).parent.resolve()))
 
         # Create dlite instance of metadata
-        moleculemodel = Instance.create_from_url(
-            "json://" + str(model.datamodel),
+        moleculemodel = Instance.from_url(
+            "json://" + str(config.datamodel),
         )  # DLite Metadata
 
         # Get ase.Atoms obejct from cache
-        cache = DataCache(model.datacache_config)
-        atoms = cache.get(model.datacacheKey)
+        cache = DataCache(config.datacache_config)
+        atoms = cache.get(config.datacacheKey)
 
         # Creat dlite instance from metadata and populate
-        inst = moleculemodel(dims=[len(atoms), 3], id=model.label)  # DLite instance
+        inst = moleculemodel(dims=[len(atoms), 3], id=config.label)  # DLite instance
         inst.symbols = atoms.get_chemical_symbols()
         inst.masses = atoms.get_masses()
         inst.positions = atoms.positions
@@ -114,10 +114,10 @@ class ASEDliteFunctionStrategy:
 
         # Get collection from session and place  molecule in it
         if session is not None:
-            coll = get_collection(session["collection_id"])
+            coll = get_instance(session["collection_id"])
         else:
             raise OteapiAsmodError("Missing session")
 
-        coll.add(label=model.label, inst=inst)
+        coll.add(label=config.label, inst=inst)
 
         return SessionUpdateASEDliteFunction(collection_id=session["collection_id"])
