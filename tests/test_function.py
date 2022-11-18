@@ -13,7 +13,7 @@ def test_ASEDlite(  # pylint: disable=invalid-name, too-many-locals
     from oteapi.models.resourceconfig import ResourceConfig
 
     from oteapi_asmod.strategies.function import (
-        ASEDliteConfig,
+        ASEDliteFunctionConfig,
         ASEDliteFunctionStrategy,
     )
     from oteapi_asmod.strategies.parse import AtomisticStructureParseStrategy
@@ -38,8 +38,13 @@ def test_ASEDlite(  # pylint: disable=invalid-name, too-many-locals
     session.update(SessionUpdate(collection_id=coll.uuid))
     # Define configuration for the function
     modelpath = repo_dir / "tests" / "testfiles" / "Molecule.json"
-    config2 = ASEDliteConfig(
-        label="molecule", datacacheKey=parsed_atoms_key, datamodel=modelpath
+    config2 = ASEDliteFunctionConfig(
+        functionType="asedlite/atoms",
+        configuration={
+            "label": "molecule",
+            "datacacheKey": parsed_atoms_key,
+            "datamodel": modelpath,
+        },
     )
 
     # Instantiate function
