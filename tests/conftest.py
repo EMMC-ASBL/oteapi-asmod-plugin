@@ -1,4 +1,5 @@
 """Pytest fixtures for `strategies/`."""
+
 from pathlib import Path
 
 import pytest

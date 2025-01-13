@@ -1,4 +1,5 @@
 """Setup for OTE-API AtomScale MODels."""
+
 import re
 from pathlib import Path
 
