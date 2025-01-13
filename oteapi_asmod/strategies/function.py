@@ -1,4 +1,5 @@
 """Function strategy class for mapping ase.Atoms to dlite metadata."""
+
 # pylint: disable=no-self-use,unused-argument
 import pathlib
 from dataclasses import dataclass

@@ -1,4 +1,5 @@
 """Demo strategy class for text/json."""
+
 # pylint: disable=no-self-use,unused-argument
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Optional
